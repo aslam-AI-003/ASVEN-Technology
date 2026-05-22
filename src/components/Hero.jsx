@@ -1,6 +1,69 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { useInView } from 'framer-motion';
 import { HiArrowRight, HiPlay } from 'react-icons/hi';
 import { FaRocket, FaCode, FaMobile, FaBrain } from 'react-icons/fa';
+
+// Counter component that animates from 0 to target number
+const AnimatedCounter = ({ target, suffix = '', duration = 2 }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+    
+    let startTime;
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = (currentTime - startTime) / 1000;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out cubic for smooth deceleration
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(target);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [isInView, target, duration]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+};
+
+// Word rotate component
+const WordRotate = ({ words, className = '' }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % words.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [words.length]);
+
+  return (
+    <span className={`inline-block relative ${className}`}>
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={currentIndex}
+          initial={{ y: 30, opacity: 0, rotateX: -90 }}
+          animate={{ y: 0, opacity: 1, rotateX: 0 }}
+          exit={{ y: -30, opacity: 0, rotateX: 90 }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          className="inline-block gradient-text"
+        >
+          {words[currentIndex]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+};
 
 const Hero = () => {
   const floatingIcons = [
@@ -9,6 +72,8 @@ const Hero = () => {
     { Icon: FaBrain, delay: 0.4, position: 'bottom-40 left-20' },
     { Icon: FaRocket, delay: 0.6, position: 'bottom-20 right-10' },
   ];
+
+  const rotatingWords = ['Idea', 'Vision', 'Concept', 'Dream'];
 
   return (
     <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden grid-pattern">
@@ -43,7 +108,7 @@ const Hero = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6"
         >
-          From <span className="gradient-text">Idea</span> to
+          From <WordRotate words={rotatingWords} /> to
           <br />
           <span className="gradient-text">Innovation</span>
         </motion.h1>
@@ -75,7 +140,7 @@ const Hero = () => {
           </a>
         </motion.div>
 
-        {/* Stats */}
+        {/* Stats with Counter Animation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,13 +148,19 @@ const Hero = () => {
           className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
         >
           {[
-            { number: '50+', label: 'Projects Completed' },
-            { number: '30+', label: 'Happy Clients' },
-            { number: '5+', label: 'Years Experience' },
-            { number: '24/7', label: 'Support Available' },
+            { number: 50, suffix: '+', label: 'Projects Completed' },
+            { number: 30, suffix: '+', label: 'Happy Clients' },
+            { number: 5, suffix: '+', label: 'Years Experience' },
+            { number: null, display: '24/7', label: 'Support Available' },
           ].map((stat, index) => (
             <div key={index} className="glass-card p-6">
-              <div className="text-3xl md:text-4xl font-bold gradient-text mb-1">{stat.number}</div>
+              <div className="text-3xl md:text-4xl font-bold gradient-text mb-1">
+                {stat.number !== null ? (
+                  <AnimatedCounter target={stat.number} suffix={stat.suffix} duration={2} />
+                ) : (
+                  stat.display
+                )}
+              </div>
               <div className="text-sm text-white/60">{stat.label}</div>
             </div>
           ))}

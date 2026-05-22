@@ -10,11 +10,62 @@ import {
   SiNextdotjs, SiPostgresql, SiRedis, SiGraphql, SiOpenai
 } from 'react-icons/si';
 
+// Infinite Marquee Component
+const InfiniteMarquee = ({ items, direction = 'left', speed = 30 }) => {
+  return (
+    <div className="overflow-hidden relative">
+      {/* Fade edges */}
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#0f172a] to-transparent z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#0f172a] to-transparent z-10" />
+      
+      <div
+        className="flex gap-4"
+        style={{
+          animation: `marquee-${direction} ${speed}s linear infinite`,
+        }}
+      >
+        {/* Original items */}
+        {items.map((tech, index) => (
+          <div
+            key={`original-${index}`}
+            className="glass-card px-5 py-4 flex flex-col items-center justify-center min-w-[100px] group hover:scale-110 transition-transform duration-300 cursor-pointer flex-shrink-0"
+            title={tech.name}
+          >
+            <tech.icon 
+              className="text-3xl mb-2 transition-colors duration-300" 
+              style={{ color: tech.color }}
+            />
+            <span className="text-xs text-white/50 group-hover:text-white/80 transition-colors text-center whitespace-nowrap">
+              {tech.name}
+            </span>
+          </div>
+        ))}
+        {/* Duplicated items for seamless loop */}
+        {items.map((tech, index) => (
+          <div
+            key={`duplicate-${index}`}
+            className="glass-card px-5 py-4 flex flex-col items-center justify-center min-w-[100px] group hover:scale-110 transition-transform duration-300 cursor-pointer flex-shrink-0"
+            title={tech.name}
+          >
+            <tech.icon 
+              className="text-3xl mb-2 transition-colors duration-300" 
+              style={{ color: tech.color }}
+            />
+            <span className="text-xs text-white/50 group-hover:text-white/80 transition-colors text-center whitespace-nowrap">
+              {tech.name}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const TechStack = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
-  const technologies = [
+  const technologiesRow1 = [
     { name: 'React', icon: FaReact, color: '#61DAFB' },
     { name: 'Node.js', icon: FaNodeJs, color: '#339933' },
     { name: 'Flutter', icon: SiFlutter, color: '#02569B' },
@@ -25,6 +76,9 @@ const TechStack = () => {
     { name: 'Next.js', icon: SiNextdotjs, color: '#ffffff' },
     { name: 'Tailwind', icon: SiTailwindcss, color: '#06B6D4' },
     { name: 'PostgreSQL', icon: SiPostgresql, color: '#4169E1' },
+  ];
+
+  const technologiesRow2 = [
     { name: 'AWS', icon: FaAws, color: '#FF9900' },
     { name: 'Docker', icon: FaDocker, color: '#2496ED' },
     { name: 'GraphQL', icon: SiGraphql, color: '#E10098' },
@@ -60,38 +114,30 @@ const TechStack = () => {
           </p>
         </motion.div>
 
-        {/* Tech Grid */}
+        {/* Infinite Marquee - Row 1 (scrolls left) */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-10 gap-4"
+          className="mb-4"
         >
-          {technologies.map((tech, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={isInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.3, delay: index * 0.05 }}
-              className="glass-card p-4 flex flex-col items-center justify-center group hover:scale-110 transition-transform duration-300 cursor-pointer"
-              title={tech.name}
-            >
-              <tech.icon 
-                className="text-3xl mb-2 transition-colors duration-300" 
-                style={{ color: tech.color }}
-              />
-              <span className="text-xs text-white/50 group-hover:text-white/80 transition-colors text-center">
-                {tech.name}
-              </span>
-            </motion.div>
-          ))}
+          <InfiniteMarquee items={technologiesRow1} direction="left" speed={35} />
+        </motion.div>
+
+        {/* Infinite Marquee - Row 2 (scrolls right) */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <InfiniteMarquee items={technologiesRow2} direction="right" speed={40} />
         </motion.div>
 
         {/* Categories */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.4 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16"
         >
           {[

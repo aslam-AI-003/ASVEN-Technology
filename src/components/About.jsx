@@ -1,7 +1,39 @@
 import { motion } from 'framer-motion';
 import { useInView } from 'framer-motion';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { FaUsers, FaLightbulb, FaHandshake, FaChartLine } from 'react-icons/fa';
+
+// Counter component that animates from 0 to target number
+const AnimatedCounter = ({ target, suffix = '', duration = 2 }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+    
+    let startTime;
+    const animate = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const elapsed = (currentTime - startTime) / 1000;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out cubic for smooth deceleration
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        setCount(target);
+      }
+    };
+    
+    requestAnimationFrame(animate);
+  }, [isInView, target, duration]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+};
 
 const About = () => {
   const ref = useRef(null);
@@ -59,18 +91,24 @@ const About = () => {
               mobile applications, custom software, and digital marketing solutions that exceed expectations.
             </p>
 
-            {/* Mini Stats */}
+            {/* Mini Stats with Counter Animation */}
             <div className="grid grid-cols-3 gap-6">
-              {[
-                { value: '100%', label: 'Client Satisfaction' },
-                { value: '50+', label: 'Projects Delivered' },
-                { value: '24/7', label: 'Support' },
-              ].map((stat, index) => (
-                <div key={index}>
-                  <div className="text-2xl md:text-3xl font-bold gradient-text">{stat.value}</div>
-                  <div className="text-sm text-white/50">{stat.label}</div>
+              <div>
+                <div className="text-2xl md:text-3xl font-bold gradient-text">
+                  <AnimatedCounter target={100} suffix="%" duration={2} />
                 </div>
-              ))}
+                <div className="text-sm text-white/50">Client Satisfaction</div>
+              </div>
+              <div>
+                <div className="text-2xl md:text-3xl font-bold gradient-text">
+                  <AnimatedCounter target={50} suffix="+" duration={2} />
+                </div>
+                <div className="text-sm text-white/50">Projects Delivered</div>
+              </div>
+              <div>
+                <div className="text-2xl md:text-3xl font-bold gradient-text">24/7</div>
+                <div className="text-sm text-white/50">Support</div>
+              </div>
             </div>
           </motion.div>
 
